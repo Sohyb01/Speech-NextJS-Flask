@@ -40,9 +40,6 @@ export default function Home() {
           // interim += event.results[i][0].transcript;
         }
       }
-
-      // setInterimTranscript(interimTranscript + " " + interim);
-      // setFinalTranscript(finalTranscript + " " + final);
     };
 
     if (isListening) {
