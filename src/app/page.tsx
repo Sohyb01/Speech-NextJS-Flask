@@ -12,35 +12,19 @@ export default function Home() {
 
   const clearTranscription = () => {
     setFinalTranscript("");
+    setInterimTranscript("");
   };
 
   useEffect(() => {
     // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
+      window.webkitSpeechRecognition || window.SpeechRecognition;
     // Now we can safely create a new instance of SpeechRecognition
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognition() || window.SpeechRecognition;
 
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "ar-EG";
-
-    recognition.onresult = (event: any) => {
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          setFinalTranscript(
-            finalTranscript + " " + event.results[i][0].transcript
-          );
-          // final += event.results[i][0].transcript;
-        } else {
-          setInterimTranscript(
-            interimTranscript + " " + event.results[i][0].transcript
-          );
-          // interim += event.results[i][0].transcript;
-        }
-      }
-    };
 
     if (isListening) {
       recognition.start();
@@ -48,13 +32,27 @@ export default function Home() {
       recognition.stop();
     }
 
+    let tempFinal = finalTranscript;
+    recognition.onresult = function (event: any) {
+      let tempInterim = interimTranscript;
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          tempFinal += " " + event.results[i][0].transcript;
+          setInterimTranscript("");
+        } else {
+          setInterimTranscript(
+            (tempInterim += " " + event.results[i][0].transcript)
+          );
+          setInterimTranscript(tempInterim);
+        }
+      }
+      setFinalTranscript(tempFinal);
+    };
+
     // Add event listeners here
 
     // Cleanup function to stop any ongoing recognition when the component unmounts
-    return () => {
-      recognition.stop();
-    };
-  }, [finalTranscript, interimTranscript, isListening]); // Dependency array, re-run the effect when `isListening` changes
+  }, [isListening]); // Dependency array, re-run the effect when `isListening` changes
 
   const getTranslation = async () => {
     const res = await translateText(finalTranscript, "en");
@@ -151,7 +149,8 @@ export default function Home() {
         </h3>
         {/* Transcription Output */}
         <p className="border-[1.5px] border-solid rounded-[3px] border-neutral-800 h-[118px] p-4">
-          {finalTranscript}
+          {finalTranscript}{" "}
+          <span className="text-neutral-400">{interimTranscript}</span>
         </p>
       </section>
       {/* Section 3: Translation of Transcribed Speech */}
