@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState } from "react";
 import translateText from "./action";
@@ -5,16 +6,22 @@ import translateText from "./action";
 export default function Home() {
   // Intializing Variables
   const [isListening, setIsListening] = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
+  //
+  const [fromLang, setFromLang] = useState("ar-EG");
+  const [toLang, setToLang] = useState("en");
+  //
   const [finalTranscript, setFinalTranscript] = useState("");
   const [interimTranscript, setInterimTranscript] = useState("");
   const [translation, setTranslation] = useState("");
   //
 
   const clearTranscription = () => {
-    setFinalTranscript("");
-    setInterimTranscript("");
+    setFinalTranscript(" ");
+    setInterimTranscript(" ");
   };
 
+  // This is called when you press the start button
   useEffect(() => {
     // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
     const SpeechRecognition =
@@ -24,7 +31,7 @@ export default function Home() {
 
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "ar-EG";
+    recognition.lang = fromLang;
 
     if (isListening) {
       recognition.start();
@@ -33,6 +40,7 @@ export default function Home() {
     }
 
     let tempFinal = finalTranscript;
+    //
     recognition.onresult = function (event: any) {
       let tempInterim = interimTranscript;
       for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -55,39 +63,65 @@ export default function Home() {
   }, [isListening]); // Dependency array, re-run the effect when `isListening` changes
 
   const getTranslation = async () => {
-    const res = await translateText(finalTranscript, "en");
+    const res = await translateText(finalTranscript, toLang);
     setTranslation(res[0]);
   };
 
   useEffect(() => {
     getTranslation();
-  }, [finalTranscript]);
+  }, [finalTranscript, toLang]);
 
   // Container of all 3 Sections
   return (
-    <main className="max-w-[744px] flex flex-col gap-8 px-4 md:px-8 text-sm py-4 bg-white">
+    <main className="max-w-[744px] flex flex-col gap-8 px-12 text-sm py-12  bg-white rounded-[32px] shadow-2xl">
       {/* Section 1:  Language Selection, Start Recording, Auto-Detect*/}
       <section className="flex gap-4 items-center justify-center">
         {/* From - LANG */}
-        {/* <div className="flex gap-1 items-center">
-          <label className=" text-neutral-800" htmlFor="language">
-            From
-          </label>
-          <select
-            name="language"
-            className="px-2 py-1 select select-bordered border-solid border-neutral-800 border-[1.5px] rounded-[3px] w-full max-w-xs font-bold"
+        <div className="flex gap-1 items-center">
+          <p className=" text-neutral-800">From</p>
+          <button
+            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+            onClick={() => {
+              setFromLang("ar");
+            }}
           >
-            <option>Arabic</option>
-            <option>English</option>
-            <option>French</option>
-          </select>
-        </div> */}
-        {/* Auto Detect Button */}
-        {/* <button className="bg-green-700 text-white font-bold px-2 py-1 rounded-[3px]">
-          Auto Detect
-        </button> */}
-        {/* Divider */}
-        {/* <div className="w-2 h-[1px] bg-neutral-800"></div> */}
+            Arabic (EG)
+          </button>
+          <button
+            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+            onClick={() => {
+              setFromLang("en");
+            }}
+          >
+            English
+          </button>
+          <button
+            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+            onClick={() => {
+              setFromLang("fr");
+            }}
+          >
+            French
+          </button>
+          <button
+            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+            onClick={() => {
+              setFromLang("de");
+            }}
+          >
+            German
+          </button>
+          <button
+            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+            onClick={() => {
+              setFromLang("ja");
+            }}
+          >
+            Japanese
+          </button>
+        </div>
+      </section>
+      <section className="flex gap-4 items-center justify-center">
         {/* Start Button */}
         <button
           onClick={() => {
@@ -158,14 +192,46 @@ export default function Home() {
         <div className="flex gap-4 items-center justify-center">
           <div className="flex gap-1 items-center">
             <p className=" text-neutral-800 font-bold">Translation: </p>
-            <select
-              name="output-lang"
-              className="text-sm px-2 py-1 border-solid border-neutral-800 border-[1px] rounded-[3px] font-bold bg-neutral-100"
+            <button
+              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+              onClick={() => {
+                setToLang("ar");
+              }}
             >
-              <option value="ar">Arabic</option>
-              <option value="en">English</option>
-              <option value="es">French</option>
-            </select>
+              Arabic
+            </button>
+            <button
+              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+              onClick={() => {
+                setToLang("en");
+              }}
+            >
+              English
+            </button>
+            <button
+              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+              onClick={() => {
+                setToLang("fr");
+              }}
+            >
+              French
+            </button>
+            <button
+              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+              onClick={() => {
+                setToLang("de");
+              }}
+            >
+              German
+            </button>
+            <button
+              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+              onClick={() => {
+                setToLang("ja");
+              }}
+            >
+              Japanese
+            </button>
           </div>
         </div>
         {/* Output */}
@@ -175,28 +241,39 @@ export default function Home() {
       </section>
       <section className="flex flex-col gap-2  text-neutral-800">
         <div className="flex gap-4 items-center justify-center">
-          <button className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-            >
-              <path
-                d="M8.36671 13.7267C7.84004 13.7267 7.26004 13.54 6.68004 13.1733L4.73337 11.9533C4.60004 11.8733 4.44671 11.8267 4.29337 11.8267H3.33337C1.72004 11.8267 0.833374 10.94 0.833374 9.32667V6.66C0.833374 5.04667 1.72004 4.16 3.33337 4.16H4.28671C4.44004 4.16 4.59337 4.11333 4.72671 4.03333L6.67337 2.81333C7.64671 2.20667 8.59337 2.09333 9.34004 2.50667C10.0867 2.92 10.4934 3.78 10.4934 4.93333V11.0467C10.4934 12.1933 10.08 13.06 9.34004 13.4733C9.04671 13.6467 8.71337 13.7267 8.36671 13.7267ZM3.33337 5.16667C2.28004 5.16667 1.83337 5.61333 1.83337 6.66667V9.33333C1.83337 10.3867 2.28004 10.8333 3.33337 10.8333H4.28671C4.63337 10.8333 4.96671 10.9267 5.26004 11.1133L7.20671 12.3333C7.84671 12.7333 8.45337 12.84 8.86004 12.6133C9.26671 12.3867 9.50004 11.82 9.50004 11.0667V4.94C9.50004 4.18 9.26671 3.61333 8.86004 3.39333C8.45337 3.16667 7.84671 3.26667 7.20671 3.67333L5.25337 4.88667C4.96671 5.07333 4.62671 5.16667 4.28671 5.16667H3.33337Z"
-                fill="#525252"
-              />
-              <path
-                d="M12.0001 11.1667C11.8934 11.1667 11.7934 11.1333 11.7001 11.0667C11.4801 10.9 11.4334 10.5867 11.6001 10.3667C12.6467 8.97333 12.6467 7.02666 11.6001 5.63333C11.4334 5.41333 11.4801 5.09999 11.7001 4.93333C11.9201 4.76666 12.2334 4.81333 12.4001 5.03333C13.7067 6.77999 13.7067 9.21999 12.4001 10.9667C12.3001 11.1 12.1534 11.1667 12.0001 11.1667Z"
-                fill="#525252"
-              />
-              <path
-                d="M13.22 12.8333C13.1134 12.8333 13.0134 12.8 12.92 12.7333C12.7 12.5667 12.6534 12.2533 12.82 12.0333C14.6 9.66 14.6 6.34 12.82 3.96667C12.6534 3.74667 12.7 3.43334 12.92 3.26667C13.14 3.1 13.4534 3.14667 13.62 3.36667C15.6667 6.09334 15.6667 9.90667 13.62 12.6333C13.5267 12.7667 13.3734 12.8333 13.22 12.8333Z"
-                fill="#525252"
-              />
-            </svg>
-            Toggle Audio
+          <button
+            onClick={() => setSoundOn(!soundOn)}
+            className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
+          >
+            {/* Sound on   */}
+            {soundOn ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill="currentColor"
+                  d="M7.563 2.069A.75.75 0 0 1 8 2.75v10.5a.751.751 0 0 1-1.238.57L3.472 11H1.75A1.75 1.75 0 0 1 0 9.25v-2.5C0 5.784.784 5 1.75 5h1.723l3.289-2.82a.75.75 0 0 1 .801-.111ZM6.5 4.38L4.238 6.319a.748.748 0 0 1-.488.181h-2a.25.25 0 0 0-.25.25v2.5c0 .138.112.25.25.25h2c.179 0 .352.064.488.18L6.5 11.62Zm6.096-2.038a.75.75 0 0 1 1.06 0a8 8 0 0 1 0 11.314a.751.751 0 0 1-1.042-.018a.751.751 0 0 1-.018-1.042a6.5 6.5 0 0 0 0-9.193a.75.75 0 0 1 0-1.06Zm-1.06 2.121l-.001.001a5 5 0 0 1 0 7.07a.749.749 0 0 1-1.275-.326a.749.749 0 0 1 .215-.734a3.5 3.5 0 0 0 0-4.95a.75.75 0 1 1 1.061-1.061Z"
+                />
+              </svg>
+            ) : (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  d="M1 8v8h5.099L12 21V3L6 8H1Zm14 1l6 6m0-6l-6 6"
+                />
+              </svg>
+            )}
+            Toggle Sound
           </button>
         </div>
       </section>
