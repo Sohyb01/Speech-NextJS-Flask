@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import translateText from "./action";
 
 export default function Home() {
+  const utterance = new window.SpeechSynthesisUtterance();
+  utterance.voice = speechSynthesis.getVoices()[1];
   // Intializing Variables
   const [isListening, setIsListening] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
@@ -17,8 +19,15 @@ export default function Home() {
   //
 
   const clearTranscription = () => {
-    setFinalTranscript(" ");
-    setInterimTranscript(" ");
+    setFinalTranscript("");
+    setInterimTranscript("");
+  };
+
+  const handlePlaySound = () => {
+    utterance.lang = toLang;
+    utterance["text"] = translation;
+    // console.log(utterance["text"], utterance.lang);
+    window.speechSynthesis.speak(utterance);
   };
 
   // This is called when you press the start button
@@ -33,29 +42,37 @@ export default function Home() {
     recognition.interimResults = true;
     recognition.lang = fromLang;
 
+    let tempFinal = finalTranscript;
+
     if (isListening) {
       recognition.start();
-    } else {
-      recognition.stop();
-    }
-
-    let tempFinal = finalTranscript;
-    //
-    recognition.onresult = function (event: any) {
-      let tempInterim = interimTranscript;
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          tempFinal += " " + event.results[i][0].transcript;
-          setInterimTranscript("");
-        } else {
-          setInterimTranscript(
-            (tempInterim += " " + event.results[i][0].transcript)
-          );
-          setInterimTranscript(tempInterim);
+      recognition.onresult = function (event: any) {
+        let tempInterim = interimTranscript;
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            tempFinal += " " + event.results[i][0].transcript;
+            setInterimTranscript("");
+          } else {
+            setInterimTranscript(
+              (tempInterim += " " + event.results[i][0].transcript)
+            );
+            setInterimTranscript(tempInterim);
+          }
+          setFinalTranscript(tempFinal);
+          console.log("is listening is:", isListening);
+          isListening ? null : recognition.stop();
         }
-      }
-      setFinalTranscript(tempFinal);
-    };
+      };
+    } else {
+      console.log("is listening is:", isListening);
+      recognition.stop();
+      recognition.onresult = function () {
+        return null;
+      };
+      setInterimTranscript("");
+      tempFinal = "";
+    }
+    //
 
     // Add event listeners here
 
@@ -83,6 +100,7 @@ export default function Home() {
             className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
             onClick={() => {
               setFromLang("ar");
+              console.log(isListening);
             }}
           >
             Arabic (EG)
@@ -161,8 +179,9 @@ export default function Home() {
           </svg>
         </button>
         <button
+          disabled={isListening}
           onClick={() => clearTranscription()}
-          className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+          className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid disabled:bg-neutral-400"
         >
           Clear
         </button>
@@ -182,7 +201,7 @@ export default function Home() {
           Transcription (Uttered Speech)
         </h3>
         {/* Transcription Output */}
-        <p className="border-[1.5px] border-solid rounded-[3px] border-neutral-800 h-[118px] p-4">
+        <p className="border-[1.5px] border-solid rounded-[3px] border-neutral-800 h-[118px] p-4 overflow-y-scroll">
           {finalTranscript}{" "}
           <span className="text-neutral-400">{interimTranscript}</span>
         </p>
@@ -234,15 +253,18 @@ export default function Home() {
             </button>
           </div>
         </div>
-        {/* Output */}
-        <p className="p-4 border-[1.5px] border-solid rounded-[3px] border-neutral-800 h-[118px]">
+        {/* Translation Output */}
+        <p className="p-4 border-[1.5px] border-solid rounded-[3px] border-neutral-800 h-[118px] overflow-y-scroll">
           {translation}
         </p>
       </section>
       <section className="flex flex-col gap-2  text-neutral-800">
         <div className="flex gap-4 items-center justify-center">
           <button
-            onClick={() => setSoundOn(!soundOn)}
+            onClick={() => {
+              setSoundOn(!soundOn);
+              window.speechSynthesis.speak(utterance);
+            }}
             className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
           >
             {/* Sound on   */}
@@ -268,12 +290,18 @@ export default function Home() {
                 <path
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
+                  strokeWidth="2"
                   d="M1 8v8h5.099L12 21V3L6 8H1Zm14 1l6 6m0-6l-6 6"
                 />
               </svg>
             )}
             Toggle Sound
+          </button>
+          <button
+            onClick={() => handlePlaySound()}
+            className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
+          >
+            Play Sound
           </button>
         </div>
       </section>
