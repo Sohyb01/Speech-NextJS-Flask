@@ -2,6 +2,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import translateText from "./action";
+import { exit } from "process";
 
 export default function Home() {
   const utterance = new window.SpeechSynthesisUtterance();
@@ -31,7 +32,7 @@ export default function Home() {
   };
 
   // This is called when you press the start button
-  useEffect(() => {
+  const handleStartButtonPressed = () => {
     // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
     const SpeechRecognition =
       window.webkitSpeechRecognition || window.SpeechRecognition;
@@ -43,8 +44,17 @@ export default function Home() {
     recognition.lang = fromLang;
 
     let tempFinal = finalTranscript;
-
+    //
     if (isListening) {
+      setIsListening(false);
+      recognition.stop();
+      recognition.onresult = function () {
+        return null;
+      };
+      setInterimTranscript("");
+    } else {
+      setIsListening(true);
+      tempFinal = "";
       recognition.start();
       recognition.onresult = function (event: any) {
         let tempInterim = interimTranscript;
@@ -53,31 +63,15 @@ export default function Home() {
             tempFinal += " " + event.results[i][0].transcript;
             setInterimTranscript("");
           } else {
-            setInterimTranscript(
-              (tempInterim += " " + event.results[i][0].transcript)
-            );
+            tempInterim += " " + event.results[i][0].transcript;
             setInterimTranscript(tempInterim);
           }
-          setFinalTranscript(tempFinal);
           console.log("is listening is:", isListening);
-          isListening ? null : recognition.stop();
+          setFinalTranscript(tempFinal);
         }
       };
-    } else {
-      console.log("is listening is:", isListening);
-      recognition.stop();
-      recognition.onresult = function () {
-        return null;
-      };
-      setInterimTranscript("");
-      tempFinal = "";
     }
-    //
-
-    // Add event listeners here
-
-    // Cleanup function to stop any ongoing recognition when the component unmounts
-  }, [isListening]); // Dependency array, re-run the effect when `isListening` changes
+  };
 
   const getTranslation = async () => {
     const res = await translateText(finalTranscript, toLang);
@@ -143,7 +137,7 @@ export default function Home() {
         {/* Start Button */}
         <button
           onClick={() => {
-            setIsListening(!isListening);
+            handleStartButtonPressed();
             getTranslation();
           }}
           className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
