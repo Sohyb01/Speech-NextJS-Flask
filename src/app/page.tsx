@@ -5,6 +5,7 @@ import translateText from "./action";
 import { exit } from "process";
 
 export default function Home() {
+  // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
   const utterance = new window.SpeechSynthesisUtterance();
   utterance.voice = speechSynthesis.getVoices()[1];
   // Intializing Variables
@@ -33,7 +34,6 @@ export default function Home() {
 
   // This is called when you press the start button
   const handleStartButtonPressed = () => {
-    // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
     const SpeechRecognition =
       window.webkitSpeechRecognition || window.SpeechRecognition;
     // Now we can safely create a new instance of SpeechRecognition
@@ -43,19 +43,16 @@ export default function Home() {
     recognition.interimResults = true;
     recognition.lang = fromLang;
 
-    let tempFinal = finalTranscript;
     //
     if (isListening) {
       setIsListening(false);
-      recognition.stop();
-      recognition.onresult = function () {
-        return null;
-      };
+      recognition.abort();
       setInterimTranscript("");
     } else {
       setIsListening(true);
-      tempFinal = "";
       recognition.start();
+      let tempFinal = "";
+
       recognition.onresult = function (event: any) {
         let tempInterim = interimTranscript;
         for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -67,8 +64,8 @@ export default function Home() {
             setInterimTranscript(tempInterim);
           }
           console.log("is listening is:", isListening);
-          setFinalTranscript(tempFinal);
         }
+        setFinalTranscript(tempFinal);
       };
     }
   };
@@ -172,13 +169,13 @@ export default function Home() {
             />
           </svg>
         </button>
-        <button
+        {/* <button
           disabled={isListening}
-          onClick={() => clearTranscription()}
+          onClick={clearTranscription}
           className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid disabled:bg-neutral-400"
         >
           Clear
-        </button>
+        </button> */}
         {/* Loading Indicator */}
         <div className="flex items-center gap-1 text-neutral-800">
           {isListening && (
