@@ -1,3 +1,5 @@
+// This is a nextjs server action that uses the google cloud translation API,
+// we are not currently using this, but it can be used
 "use server";
 // Imports the Google Cloud client library
 const { Translate } = require("@google-cloud/translate").v2;

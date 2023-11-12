@@ -1,5 +1,6 @@
-const fromLangs = ["ar", "ar-EG", "en", "fr", "ja", "es", "de"];
-const toLangs = ["ar", "en", "fr", "ja", "es", "de"];
+const langs = {
+  fromLangs: ["ar", "ar-EG", "en", "fr", "ja", "es", "de"],
+  toLangs: ["ar", "en", "fr", "ja", "es", "de"],
+};
 
-export default fromLangs;
-toLangs;
+export default langs;

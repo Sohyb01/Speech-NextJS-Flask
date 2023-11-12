@@ -20,7 +20,9 @@ export default function Home() {
   const [translation, setTranslation] = useState("");
   const [translateEndpoint, setTranslateEndpoint] = useState("google");
   //
+  const [sentencesTTS, setSentencesTTS] = useState<string[]>([]);
 
+  // New Translate text function
   const translateText = async () => {
     try {
       // Define the API endpoint
@@ -45,7 +47,8 @@ export default function Home() {
       // Check if the request was successful (status code 200)
       if (response.status === 200) {
         const data = await response.json();
-        setTranslation(data.translation);
+        setSentencesTTS([...sentencesTTS, data.translation]);
+        console.log(sentencesTTS);
         return data.translation; // Extract and return the translation
       } else {
         throw new Error("Translation request failed");
@@ -62,6 +65,27 @@ export default function Home() {
     // console.log(utterance["text"], utterance.lang);
     window.speechSynthesis.speak(utterance);
   };
+
+  const autoPlaySound = () => {
+    utterance.lang = toLang;
+    if (sentencesTTS.length) {
+      utterance["text"] = sentencesTTS[0];
+      // utterance["text"] = sentencesTTS[0];
+      console.log("test");
+      if (!window.speechSynthesis.speaking) {
+        window.speechSynthesis.speak(utterance);
+        setSentencesTTS((sentences) =>
+          sentences.filter((_, index) => index !== 0)
+        );
+        console.log(sentencesTTS);
+      }
+    }
+  };
+  useEffect(() => {
+    setTimeout(() => {
+      autoPlaySound();
+    }, 300);
+  }, [translation]);
 
   // This is called when you press the start button
   const handleStartButtonPressed = () => {
@@ -97,13 +121,14 @@ export default function Home() {
           console.log("is listening is:", isListening);
         }
         setFinalTranscript(tempFinal);
-        translateText();
       };
     }
   };
 
   useEffect(() => {
-    translateText();
+    translateText().then((data) => {
+      setTranslation(data);
+    });
   }, [finalTranscript, toLang]);
 
   // Container of all 3 Sections
@@ -168,7 +193,6 @@ export default function Home() {
         <button
           onClick={() => {
             handleStartButtonPressed();
-            translateText();
           }}
           className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
         >
