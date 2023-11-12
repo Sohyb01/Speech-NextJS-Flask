@@ -295,12 +295,6 @@ export default function Home() {
             className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
           >
             Play Sound
-          </button>{" "}
-          <button
-            onClick={() => handlePlaySound()}
-            className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
-          >
-            Translate
           </button>
         </div>
       </section>
