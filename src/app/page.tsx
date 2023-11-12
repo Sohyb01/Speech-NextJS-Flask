@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useEffect, useState } from "react";
-import translateText from "./action";
-import { exit } from "process";
+// import translateText from "./action";
+import langs from "./languages";
 
 export default function Home() {
   // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
@@ -18,11 +18,42 @@ export default function Home() {
   const [finalTranscript, setFinalTranscript] = useState("");
   const [interimTranscript, setInterimTranscript] = useState("");
   const [translation, setTranslation] = useState("");
+  const [translateEndpoint, setTranslateEndpoint] = useState("google");
   //
 
-  const clearTranscription = () => {
-    setFinalTranscript("");
-    setInterimTranscript("");
+  const translateText = async () => {
+    try {
+      // Define the API endpoint
+      const endpoint = `http://localhost:5000/translate/${translateEndpoint}`;
+
+      // Create the request body
+      const requestBody = {
+        text: finalTranscript,
+        from_language: fromLang,
+        to_language: toLang,
+      };
+
+      // Send a POST request to the Flask backend
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      // Check if the request was successful (status code 200)
+      if (response.status === 200) {
+        const data = await response.json();
+        setTranslation(data.translation);
+        return data.translation; // Extract and return the translation
+      } else {
+        throw new Error("Translation request failed");
+      }
+    } catch (error) {
+      console.error("Translation error:", error);
+      return null; // Return null in case of an error
+    }
   };
 
   const handlePlaySound = () => {
@@ -66,76 +97,78 @@ export default function Home() {
           console.log("is listening is:", isListening);
         }
         setFinalTranscript(tempFinal);
+        translateText();
       };
     }
   };
 
-  const getTranslation = async () => {
-    const res = await translateText(finalTranscript, toLang);
-    setTranslation(res[0]);
-  };
-
   useEffect(() => {
-    getTranslation();
+    translateText();
   }, [finalTranscript, toLang]);
 
   // Container of all 3 Sections
   return (
-    <main className="max-w-[744px] flex flex-col gap-8 px-12 text-sm py-12  bg-white rounded-[32px] shadow-2xl">
+    <main className="max-w-[744px] w-full flex flex-col gap-8 px-12 text-sm py-12  bg-white rounded-[32px] shadow-2xl">
+      {/* Section 0 */}
+      <section className="flex flex-col gap-2  text-neutral-800">
+        <div className="flex gap-4 items-center justify-center">
+          <button
+            onClick={() => setTranslateEndpoint("google")}
+            className={`gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1  border-[2px] border-solid rounded-[3px] ${
+              translateEndpoint == "google"
+                ? "border-blue-600"
+                : "border-neutral-400"
+            }`}
+          >
+            Google Translation
+          </button>{" "}
+          <button
+            onClick={() => setTranslateEndpoint("seamless")}
+            className={`gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1  border-[2px] border-solid rounded-[3px] ${
+              translateEndpoint == "seamless"
+                ? "border-blue-600"
+                : "border-neutral-400"
+            }`}
+          >
+            Seamless M4T Translation
+          </button>
+        </div>
+      </section>
       {/* Section 1:  Language Selection, Start Recording, Auto-Detect*/}
       <section className="flex gap-4 items-center justify-center">
         {/* From - LANG */}
         <div className="flex gap-1 items-center">
           <p className=" text-neutral-800">From</p>
-          <button
-            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-            onClick={() => {
-              setFromLang("ar");
-              console.log(isListening);
-            }}
-          >
-            Arabic (EG)
-          </button>
-          <button
-            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-            onClick={() => {
-              setFromLang("en");
-            }}
-          >
-            English
-          </button>
-          <button
-            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-            onClick={() => {
-              setFromLang("fr");
-            }}
-          >
-            French
-          </button>
-          <button
-            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-            onClick={() => {
-              setFromLang("de");
-            }}
-          >
-            German
-          </button>
-          <button
-            className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-            onClick={() => {
-              setFromLang("ja");
-            }}
-          >
-            Japanese
-          </button>
+          <details className="dropdown">
+            <summary className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid">
+              {fromLang}
+            </summary>
+            <ul className="menu dropdown-content z-[1]">
+              {langs.fromLangs.map((lang, key) => {
+                return (
+                  <button
+                    key={key}
+                    className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+                    onClick={() => {
+                      setFromLang(lang);
+                      console.log(isListening);
+                    }}
+                  >
+                    {lang}
+                  </button>
+                );
+              })}
+            </ul>
+          </details>
         </div>
       </section>
+      {/* Section 2 */}
       <section className="flex gap-4 items-center justify-center">
         {/* Start Button */}
         <button
           onClick={() => {
             handleStartButtonPressed();
-            getTranslation();
+            translateText();
           }}
           className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
         >
@@ -186,7 +219,7 @@ export default function Home() {
           )}
         </div>
       </section>
-      {/* Section 2: Transcription of Uttered Speech*/}
+      {/* Section 3: Transcription of Uttered Speech*/}
       <section className="flex flex-col gap-2 text-neutral-800">
         <h3 className="font-bold gap-2 text-center">
           Transcription (Uttered Speech)
@@ -197,51 +230,32 @@ export default function Home() {
           <span className="text-neutral-400">{interimTranscript}</span>
         </p>
       </section>
-      {/* Section 3: Translation of Transcribed Speech */}
+      {/* Section 4: Translation of Transcribed Speech */}
       <section className="flex flex-col gap-2  text-neutral-800">
         <div className="flex gap-4 items-center justify-center">
           <div className="flex gap-1 items-center">
             <p className=" text-neutral-800 font-bold">Translation: </p>
-            <button
-              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-              onClick={() => {
-                setToLang("ar");
-              }}
-            >
-              Arabic
-            </button>
-            <button
-              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-              onClick={() => {
-                setToLang("en");
-              }}
-            >
-              English
-            </button>
-            <button
-              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-              onClick={() => {
-                setToLang("fr");
-              }}
-            >
-              French
-            </button>
-            <button
-              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-              onClick={() => {
-                setToLang("de");
-              }}
-            >
-              German
-            </button>
-            <button
-              className="gap-1 flex items-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-              onClick={() => {
-                setToLang("ja");
-              }}
-            >
-              Japanese
-            </button>
+            <details className="dropdown">
+              <summary className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid">
+                {toLang}
+              </summary>
+              <ul className="menu dropdown-content z-[1]">
+                {langs.toLangs.map((lang, key) => {
+                  return (
+                    <button
+                      key={key}
+                      className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
+                      onClick={() => {
+                        setToLang(lang);
+                        console.log(isListening);
+                      }}
+                    >
+                      {lang}
+                    </button>
+                  );
+                })}
+              </ul>
+            </details>
           </div>
         </div>
         {/* Translation Output */}
@@ -249,50 +263,20 @@ export default function Home() {
           {translation}
         </p>
       </section>
+      {/* Section 5: Audio Recording and Playback */}
       <section className="flex flex-col gap-2  text-neutral-800">
         <div className="flex gap-4 items-center justify-center">
-          <button
-            onClick={() => {
-              setSoundOn(!soundOn);
-              window.speechSynthesis.speak(utterance);
-            }}
-            className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
-          >
-            {/* Sound on   */}
-            {soundOn ? (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill="currentColor"
-                  d="M7.563 2.069A.75.75 0 0 1 8 2.75v10.5a.751.751 0 0 1-1.238.57L3.472 11H1.75A1.75 1.75 0 0 1 0 9.25v-2.5C0 5.784.784 5 1.75 5h1.723l3.289-2.82a.75.75 0 0 1 .801-.111ZM6.5 4.38L4.238 6.319a.748.748 0 0 1-.488.181h-2a.25.25 0 0 0-.25.25v2.5c0 .138.112.25.25.25h2c.179 0 .352.064.488.18L6.5 11.62Zm6.096-2.038a.75.75 0 0 1 1.06 0a8 8 0 0 1 0 11.314a.751.751 0 0 1-1.042-.018a.751.751 0 0 1-.018-1.042a6.5 6.5 0 0 0 0-9.193a.75.75 0 0 1 0-1.06Zm-1.06 2.121l-.001.001a5 5 0 0 1 0 7.07a.749.749 0 0 1-1.275-.326a.749.749 0 0 1 .215-.734a3.5 3.5 0 0 0 0-4.95a.75.75 0 1 1 1.061-1.061Z"
-                />
-              </svg>
-            ) : (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  d="M1 8v8h5.099L12 21V3L6 8H1Zm14 1l6 6m0-6l-6 6"
-                />
-              </svg>
-            )}
-            Toggle Sound
-          </button>
           <button
             onClick={() => handlePlaySound()}
             className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
           >
             Play Sound
+          </button>{" "}
+          <button
+            onClick={() => handlePlaySound()}
+            className="gap-1 flex items-center bg-neutral-100 text-neutral-800 font-bold px-2 py-1 border-neutral-400 border-[1px] border-solid rounded-[3px]"
+          >
+            Translate
           </button>
         </div>
       </section>
