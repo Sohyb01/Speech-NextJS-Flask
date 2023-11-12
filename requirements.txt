@@ -1,0 +1,16 @@
+
+
+
+
+
+
+
+
+
+there is a 4gb model that needed to be downloaded
+
+
+
+!pip install transformers
+!pip install sentencepiece
+!pip install flask
