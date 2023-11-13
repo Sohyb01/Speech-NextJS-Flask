@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 // import translateText from "./action";
 import langs from "./languages";
+import { exit } from "process";
 
 export default function Home() {
   // This will be `undefined` on the server, but will be the actual SpeechRecognition on the client
@@ -21,6 +22,17 @@ export default function Home() {
   const [translateEndpoint, setTranslateEndpoint] = useState("google");
   //
   const [sentencesTTS, setSentencesTTS] = useState<string[]>([]);
+
+  // Initialize the SpeechRecognition Instance
+  const SpeechRecognition =
+    window.webkitSpeechRecognition || window.SpeechRecognition;
+  // Now we can safely create a new instance of SpeechRecognition
+  const recognition = new SpeechRecognition() || window.SpeechRecognition;
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = fromLang;
+
+  //
 
   // New Translate text function
   const translateText = async (text?: string) => {
@@ -78,21 +90,8 @@ export default function Home() {
 
   // This is called when you press the start button
   const handleStartButtonPressed = () => {
-    const SpeechRecognition =
-      window.webkitSpeechRecognition || window.SpeechRecognition;
-    // Now we can safely create a new instance of SpeechRecognition
-    const recognition = new SpeechRecognition() || window.SpeechRecognition;
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = fromLang;
-
     //
-    if (isListening) {
-      setIsListening(false);
-      recognition.abort();
-      setInterimTranscript("");
-    } else {
+    if (!isListening) {
       setIsListening(true);
       recognition.start();
       let tempFinal = "";
@@ -112,12 +111,14 @@ export default function Home() {
         }
         setFinalTranscript(tempFinal);
       };
+    } else {
+      //
+      setIsListening(false);
+      recognition.abort();
+      // Try code here to control microphone directly
+      setInterimTranscript("");
     }
   };
-
-  // useEffect(() => {
-  //   translateText();
-  // }, [finalTranscript, toLang]);
 
   // Container of all 3 Sections
   return (
@@ -191,6 +192,7 @@ export default function Home() {
             )}
           </div>
         </button>
+
         {/* <button
           disabled={isListening}
           onClick={clearTranscription}
