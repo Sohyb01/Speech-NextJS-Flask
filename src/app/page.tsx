@@ -211,27 +211,22 @@ export default function Home() {
         <section className="flex flex-col gap-2 text-white w-full h-full">
           <div className="flex gap-1 items-center justify-center">
             <p className="font-bold">Transcribe in:</p>
-            <details className="dropdown">
-              <summary className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid">
-                {fromLang}
-              </summary>
-              <ul className="menu dropdown-content z-[1]">
-                {langs.fromLangs.map((lang, key) => {
-                  return (
-                    <button
-                      key={key}
-                      className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid"
-                      onClick={() => {
-                        setFromLang(lang);
-                        console.log(isListening);
-                      }}
-                    >
-                      {lang}
-                    </button>
-                  );
-                })}
-              </ul>
-            </details>
+            <select
+              onChange={(e) => {
+                setFromLang(e.target.value);
+              }}
+              className="p-2 bg-white text-purple-600"
+            >
+              {langs.fromLangs.map((lang, key) => (
+                <option
+                  className="bg-white text-purple-600"
+                  key={key}
+                  value={lang}
+                >
+                  {lang}
+                </option>
+              ))}
+            </select>
           </div>
           {/* Transcription Output */}
           <p className="overflow-y-scroll outputs">
@@ -244,7 +239,23 @@ export default function Home() {
           <div className="flex gap-4 items-center justify-center">
             <div className="flex gap-1 items-center">
               <p className=" text-white font-bold">Translate to: </p>
-              <details className="dropdown">
+              <select
+                onChange={(e) => {
+                  setToLang(e.target.value);
+                }}
+                className="p-2 bg-white text-purple-600"
+              >
+                {langs.toLangs.map((lang, key) => (
+                  <option
+                    className="bg-white text-purple-600"
+                    key={key}
+                    value={lang}
+                  >
+                    {lang}
+                  </option>
+                ))}
+              </select>
+              {/* <details className="dropdown">
                 <summary className="gap-1 min-w-[8ch] flex items-center justify-center bg-neutral-200 text-neutral-600 font-bold px-2 py-1 rounded-[3px] border-neutral-400 border-[1px] border-solid">
                   {toLang}
                 </summary>
@@ -264,7 +275,7 @@ export default function Home() {
                     );
                   })}
                 </ul>
-              </details>
+              </details> */}
             </div>
           </div>
           {/* Translation Output */}
