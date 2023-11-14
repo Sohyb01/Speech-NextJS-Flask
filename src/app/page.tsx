@@ -79,6 +79,10 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    translateText();
+  }, [toLang]);
+
   const handlePlaySound = (text?: string) => {
     utterance["text"] = translation;
     window.speechSynthesis.speak(utterance);
