@@ -278,7 +278,7 @@ export default function Home() {
             onClick={() => handlePlaySound()}
             className="button-styles active"
           >
-            Play Sound
+            Play (Entire Translation)
           </button>
         </div>
       </section>
